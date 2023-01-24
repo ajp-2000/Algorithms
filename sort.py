@@ -134,7 +134,6 @@ def heap_sort(nums, dir = 1):
         h.array[i] = temp
         h.size -= 1
         h.heapify(0, dir)
-        h.print_tree()
 
     return h.array
 
