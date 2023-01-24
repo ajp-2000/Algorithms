@@ -127,19 +127,14 @@ def heap_sort(nums, dir = 1):
     # Build a max heap out of the unsorted list
     h = heap(nums)
     h.build_heap(dir)
-    h.print_tree()
-
     # Sort
-    for i in range(h.size-1, 1, -1):
+    for i in range(h.size-1, 0, -1):
         temp = h.array[0]
         h.array[0] = h.array[i]
         h.array[i] = temp
         h.size -= 1
-        h.print_tree()
-        print()
         h.heapify(0, dir)
         h.print_tree()
-        print()
 
     return h.array
 
