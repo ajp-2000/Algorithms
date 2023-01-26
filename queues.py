@@ -39,9 +39,7 @@ class PriorityQueue:
         self.h.array[index] = key
         while index>0 and self.h.array[self.h.parent(index)]*self.dir<self.h.array[index]*self.dir:
             # Excahnge array[index] with array[parent(index)]
-            temp = self.h.array[index]
-            self.h.array[index] = self.h.array[self.h.parent(index)]
-            self.h.array[self.h.parent(index)] = temp
+            self.h.array[index], self.h.array[self.h.parent(index)] = self.h.array[self.h.parent(index)], self.h.array[index]
             index = self.h.parent(index)
     
     # Insert element key into a max priority queue

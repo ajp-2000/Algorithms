@@ -17,7 +17,7 @@ def insertion_sort(nums, dir = 1):
     
     return nums
 
-# Helper function for merge_sort
+# Helper function for merge sort
 def merge(nums, p, q, r, dir = 1):
     # Seperate the two sides
     lnums = nums[p:q+1]
@@ -54,10 +54,7 @@ def bubble_sort(nums, dir = 1):
     for i in range(len(nums) - 1):
         for j in range(len(nums)-1, i, -1):
             if nums[j]*dir < nums[j-1]*dir:
-                # Swap nums[j] and nums[j-1]
-                temp = nums[j]
-                nums[j] = nums[j-1]
-                nums[j-1] = temp
+                nums[j], nums[j-1] = nums[j-1], nums[j]
 
     return nums
 
@@ -67,13 +64,32 @@ def heap_sort(nums, dir = 1):
     h.build_heap(dir)
     # Sort
     for i in range(h.size-1, 0, -1):
-        temp = h.array[0]
-        h.array[0] = h.array[i]
-        h.array[i] = temp
+        h.array[0], h.array[1] = h.array[1], h.array[0]
         h.size -= 1
         h.heapify(0, dir)
 
     return h.array
+
+# Helper function for quick sort
+def quick_partition(nums, p, r, dir):
+    x = nums[r]                                                             # The pivot
+    i = p - 1
+    
+    for j in range(p, r):
+        if nums[j]*dir < x*dir:
+            i += 1
+            nums[i], nums[j] = nums[j], nums[i]
+    
+    nums[i+1], nums[r] = nums[r], nums[i+1]
+    return i + 1
+
+def quick_sort(nums, p, r, dir = 1):
+    if p < r:
+        q = quick_partition(nums, p, r, dir)
+        nums = quick_sort(nums, p, q - 1, dir)
+        nums = quick_sort(nums, q + 1, r, dir)
+    
+    return nums
 
 # Use the sorting functions:
 def get_list():
@@ -118,6 +134,12 @@ def main():
             break
         elif str == "heap descending":
             nums = heap_sort(nums, -1)
+            break
+        elif str in ["quick", "quick ascending"]:
+            nums = quick_sort(nums, 0, len(nums) - 1)
+            break
+        elif str == "quick descending":
+            nums = quick_sort(nums, 0, len(nums) - 1, -1)
             break
         
         str = input("Option not recognised - try again: ")
