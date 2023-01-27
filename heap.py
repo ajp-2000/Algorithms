@@ -47,7 +47,12 @@ class Heap:
 
         # Do a swap if required
         if largest != index:
-            self.array[index], self.array[largest] = self.array[largest], self.array[index]
+            #self.array[index], self.array[largest] = self.array[largest], self.array[index]
+            temp = self.array[index]
+            self.array[index] = self.array[largest]
+            self.array[largest] = temp
+
+
             self.heapify(largest, dir)
 
     # Use heapify() to max heapify the whole heap

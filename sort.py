@@ -1,7 +1,22 @@
 #!/usr/bin/env python3
 
+"""Various sorting algorithms. Run with -v to print each step"""
+
+import argparse
+import os.path
 import sys
 from heap import Heap
+
+verbose = False
+line = 1
+
+# Print the current line of the sorting process
+def print_line(nums):
+    if verbose:
+        global line
+        print(f"{line}. ", end = "")
+        print(" ".join(str(num) for num in nums))
+        line += 1
 
 # Insertion sort: dir = 1 for ascending; dir = -1 for descending
 def insertion_sort(nums, dir = 1):
@@ -14,6 +29,7 @@ def insertion_sort(nums, dir = 1):
             j -= 1
         
         nums[j+1] = curr
+        print_line(nums)
     
     return nums
 
@@ -47,6 +63,7 @@ def merge_sort(nums, p = 0, r = sys.maxsize, dir = 1):
         nums = merge_sort(nums, p, q, dir)
         nums = merge_sort(nums, q + 1, r, dir)
         nums = merge(nums, p, q, r, dir)
+        print_line(nums)
     
     return nums
 
@@ -55,6 +72,7 @@ def bubble_sort(nums, dir = 1):
         for j in range(len(nums)-1, i, -1):
             if nums[j]*dir < nums[j-1]*dir:
                 nums[j], nums[j-1] = nums[j-1], nums[j]
+                print_line(nums)
 
     return nums
 
@@ -64,7 +82,8 @@ def heap_sort(nums, dir = 1):
     h.build_heap(dir)
     # Sort
     for i in range(h.size-1, 0, -1):
-        h.array[0], h.array[1] = h.array[1], h.array[0]
+        print_line(h.array)
+        h.array[0], h.array[i] = h.array[i], h.array[0]
         h.size -= 1
         h.heapify(0, dir)
 
@@ -83,10 +102,15 @@ def quick_partition(nums, p, r, dir):
     nums[i+1], nums[r] = nums[r], nums[i+1]
     return i + 1
 
-def quick_sort(nums, p, r, dir = 1):
+def quick_sort(nums, p = 0, r = sys.maxsize, dir = 1):
+    if r == sys.maxsize:
+        r = len(nums) - 1
+
     if p < r:
+        print_line(nums)
         q = quick_partition(nums, p, r, dir)
         nums = quick_sort(nums, p, q - 1, dir)
+        print_line(nums)
         nums = quick_sort(nums, q + 1, r, dir)
     
     return nums
@@ -106,45 +130,95 @@ def get_list():
 
 # Provide a user interface
 def main():
-    print("Welcome to the sorter.\n")
-    nums = get_list()
+    # Map sorting algorithm names to functions
+    algo_dict = {
+        "insertion": insertion_sort,
+        "merge": merge_sort,
+        "bubble": bubble_sort,
+        "heap": heap_sort,
+        "quick": quick_sort
+    }
 
-    str = input("How would you like to sort this list? ")
-    while (str != "exit"):
-        if str in ["insertion", "insertion ascending"]:
-            nums = insertion_sort(nums)
-            break
-        elif str == "insertion descending":
-            nums = insertion_sort(nums, -1)
-            break
-        elif str in ["merge", "merge ascending"]:
-            nums = merge_sort(nums)
-            break
-        elif str == "merge descending":
-            nums = merge_sort(nums, dir = -1)
-            break
-        elif str in ["bubble", "bubble ascending"]:
-            nums = bubble_sort(nums)
-            break
-        elif str == "bubble descending":
-            nums = bubble_sort(nums, -1)
-            break
-        elif str in ["heap", "heap ascending"]:
-            nums = heap_sort(nums)
-            break
-        elif str == "heap descending":
-            nums = heap_sort(nums, -1)
-            break
-        elif str in ["quick", "quick ascending"]:
-            nums = quick_sort(nums, 0, len(nums) - 1)
-            break
-        elif str == "quick descending":
-            nums = quick_sort(nums, 0, len(nums) - 1, -1)
-            break
+    # Command-line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--sort", help = "Specify a sorting algorithm, e.g. 'merge', 'bubble', 'insertion'")
+    parser.add_argument("-i", "--input", help = "Read the unsorted list from a text file")
+    parser.add_argument("-o", "--output", help = "Write the sorted list to a text file")
+    parser.add_argument("-v", "--verbose", help = "Print each step of the sort", action = "store_true")
+    args = parser.parse_args()
+
+    global verbose
+    verbose = args.verbose
+
+    # If the user specified a sorting algorithm, check it's real
+    if args.sort:
+        if args.sort not in algo_dict:
+            print(f"Algorithm not recognised: {args.sort}")
+            return 1
+
+    # Get the list, from user input or from a specified file
+    print("Welcome to the sorter.\n")
+    nums = []
+    if not args.input:
+        nums = get_list()
+    else:
+        # Read from file: we take the first line only, and try to parse it as a comma-separated list
+        try:
+            infile = open(args.input, 'r')
+        except:
+            print(f"Could not open file: {args.input}")
+            return 1
         
-        str = input("Option not recognised - try again: ")
+        line = infile.readline()
+        for num in line.replace(" ", "").split(","):
+            try:
+                nums.append(int(num))
+            except ValueError:
+                print(f"Not a number: \"{num}\"")
+                return 1
+        infile.close()
+
+    # Sort the list
+    dir = 1
+    if not args.sort:
+        instr = input("How would you like to sort this list? ")
+        while (instr != "exit"):
+            instrs = instr.split()
+            if instrs[0] in algo_dict:
+                if len(instrs) > 1:
+                    if instrs[1] in ["ascending", "descending"]:
+                        args.sort = instrs[0]
+                        if instrs[1] == "descending":
+                            dir = -1
+                        break
+
+                args.sort = instrs[0]
+                break
+            
+            instr = input("Option not recognised - try again: ")
     
-    print(f"\nSorted list: {nums}")
+    nums = algo_dict[args.sort](nums, dir = dir)
+    
+    # Output the sorted list, either to the command line, or to a specified file
+    if not args.output:
+        print(f"\nSorted list: {nums}")
+    else:
+        # Write to file
+        while os.path.isfile(args.output):
+            overwrite = ""
+            while overwrite not in ["y", "n"]:
+                overwrite = input(f"File {args.output} already exists. Overwrite? [y/n]")
+            if overwrite == "n":
+                args.output = input("Enter a new output file name: ")
+            else:
+                break
+
+        with open(args.output, mode="w") as outfile:
+            for num in nums:
+                outfile.write(str(num))
+                outfile.write(", ")
+        
+        print(f"\nSorted list written to {args.output}.")
 
 if __name__ == "__main__":
     main()
