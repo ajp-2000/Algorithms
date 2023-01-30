@@ -5,6 +5,7 @@
 import argparse
 import os.path
 import sys
+from time import process_time
 from heap import Heap
 
 verbose = False
@@ -145,6 +146,7 @@ def main():
     parser.add_argument("-i", "--input", help = "Read the unsorted list from a text file")
     parser.add_argument("-o", "--output", help = "Write the sorted list to a text file")
     parser.add_argument("-v", "--verbose", help = "Print each step of the sort", action = "store_true")
+    parser.add_argument("-t", "--time", help = "Print time (ms) taken by algorithm, to 2dp", action = "store_true")
     args = parser.parse_args()
 
     global verbose
@@ -197,7 +199,11 @@ def main():
             
             instr = input("Option not recognised - try again: ")
     
+    elapsed = 0
+    start_time = process_time()
     nums = algo_dict[args.sort](nums, dir = dir)
+    if args.time:
+        elapsed = (process_time() - start_time) * 1000
     
     # Output the sorted list, either to the command line, or to a specified file
     if not args.output:
@@ -219,6 +225,9 @@ def main():
                 outfile.write(", ")
         
         print(f"\nSorted list written to {args.output}.")
+    
+    if args.time:
+        print(f"Time taken: {round(elapsed, 2)} ms.")
 
 if __name__ == "__main__":
     main()
